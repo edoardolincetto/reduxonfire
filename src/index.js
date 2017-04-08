@@ -4,44 +4,120 @@ class ReduxOnFire {
     constructor(config) {
         this.firebaseApp = Firebase.initializeApp(config);
         this.firebaseAuth = Firebase.auth();
+        this.firebaseAuthGoogle = new Firebase.auth.GoogleAuthProvider();
+        this.firebaseAuthFacebook = new Firebase.auth.FacebookAuthProvider();
         this.firebaseStorage = Firebase.storage();
         this.firebaseDatabase = Firebase.database();
         this.dispatch = null;
         this.getState = null;
     }
 
+    authObserver() {
+        this.firebaseAuth.onAuthStateChanged((user) => {
+            if (user) {
+                this.dispatch({ type: 'USER_LOGGED' });
+            } else {
+                this.dispatch({ type: 'USER_LOGGED_OUT' });
+            }
+        });
+    }
+
     signup(email, password) {
         this.dispatch({ type: 'SIGNUP_REQUEST' });
-        return this.firebaseAuth.createUserWithEmailAndPassword(email, password)
+        this.firebaseAuth.createUserWithEmailAndPassword(email, password)
             .then(result => {
-                this.dispatch({ type: 'SIGNUP_SUCCESS' });
-                var user = this.firebaseAuth.currentUser;
+                this.dispatch({
+                    type: 'SIGNUP_SUCCESS',
+                    result: result
+                });
+                let user = this.firebaseAuth.currentUser;
                 if (!user.emailVerified) {
                     user.sendEmailVerification();
                 }
             })
             .catch(error => {
-                this.dispatch({ type: 'SIGNUP_FAILED' })
+                this.dispatch({
+                    type: 'SIGNUP_FAILED',
+                    error: error
+                });
             });
     }
 
     login(email, password) {
         this.dispatch({ type: 'LOGIN_REQUEST' });
-        return this.firebaseAuth.signInWithEmailAndPassword(email, password)
+        this.firebaseAuth.signInWithEmailAndPassword(email, password)
             .then(result => {
-                this.dispatch({ type: 'LOGIN_SUCCESS' });
+                this.dispatch({
+                    type: 'LOGIN_SUCCESS',
+                    result: result
+                });
             })
             .catch(error => {
-                this.dispatch({ type: 'LOGIN_FAILED' })
+                this.dispatch({
+                    type: 'LOGIN_FAILED',
+                    error: error
+                });
+            });
+    }
+
+    passwordReset(email) {
+        this.firebaseAuth.sendPasswordResetEmail(email)
+            .then(() => {
+                this.dispatch({ type: 'PASSWORD_RESET_SUCCESS' });
+            })
+            .catch((error) => {
+                this.dispatch({
+                    type: 'PASSWORD_RESET_FAILED',
+                    error: error
+                });
+            });
+    }
+
+    google() {
+        this.dispatch({ type: 'GOOGLE_REQUEST' });
+        this.firebaseAuth.signInWithPopup(this.firebaseAuthGoogle)
+            .then((result) => {
+                this.dispatch({
+                    type: 'GOOGLE_SUCCESS',
+                    result: result
+                });
+            })
+            .catch((error) => {
+                this.dispatch({
+                    type: 'GOOGLE_FAILED',
+                    error: error
+                });
+            });
+    }
+
+    facebook() {
+        this.dispatch({ type: 'FACEBOOK_REQUEST' });
+        this.firebaseAuth.signInWithPopup(this.firebaseAuthFacebook)
+            .then((result) => {
+                this.dispatch({
+                    type: 'FACEBOOK_SUCCESS',
+                    result: result
+                });
+            })
+            .catch((error) => {
+                this.dispatch({
+                    type: 'FACEBOOK_FAILED',
+                    error: error
+                });
             });
     }
 
     logout() {
-        this.firebaseAuth.signOut().then(() => {
-            this.dispatch({ type: 'LOGOUT_SUCCESS' });
-        }, (error) => {
-            this.dispatch({ type: 'LOGOUT_FAILED' });
-        });
+        this.firebaseAuth.signOut()
+            .then(() => {
+                this.dispatch({ type: 'LOGOUT_SUCCESS' });
+            })
+            .catch((error) => {
+                this.dispatch({
+                    type: 'LOGOUT_FAILED',
+                    error: error
+                });
+            });
     }
 
     getRecord(actionName, recordName) {
