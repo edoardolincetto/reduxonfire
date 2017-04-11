@@ -4,18 +4,21 @@ class ReduxOnFire {
     constructor(config) {
         this.firebaseApp = Firebase.initializeApp(config);
         this.firebaseAuth = Firebase.auth();
-        this.firebaseAuthGoogle = new Firebase.auth.GoogleAuthProvider();
         this.firebaseAuthFacebook = new Firebase.auth.FacebookAuthProvider();
+        this.firebaseAuthGoogle = new Firebase.auth.GoogleAuthProvider();
         this.firebaseStorage = Firebase.storage();
         this.firebaseDatabase = Firebase.database();
         this.dispatch = null;
         this.getState = null;
     }
 
-    authObserver() {
-        this.firebaseAuth.onAuthStateChanged((user) => {
-            if (user) {
-                this.dispatch({ type: 'USER_LOGGED' });
+    watchAuth() {
+        this.firebaseAuth.onAuthStateChanged((result) => {
+            if (result) {
+                this.dispatch({
+                    type: 'USER_LOGGED',
+                    result: result
+                });
             } else {
                 this.dispatch({ type: 'USER_LOGGED_OUT' });
             }
@@ -24,23 +27,26 @@ class ReduxOnFire {
 
     signup(email, password) {
         this.dispatch({ type: 'SIGNUP_REQUEST' });
-        this.firebaseAuth.createUserWithEmailAndPassword(email, password)
-            .then(result => {
-                this.dispatch({
-                    type: 'SIGNUP_SUCCESS',
-                    result: result
+        return new Promise((resolve) => {
+            this.firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .then(result => {
+                    this.dispatch({
+                        type: 'SIGNUP_SUCCESS',
+                        result: result
+                    });
+
+                    resolve(result);
+
+                    let user = this.firebaseAuth.currentUser;
+                    if (!user.emailVerified) { user.sendEmailVerification(); }
+                })
+                .catch(error => {
+                    this.dispatch({
+                        type: 'SIGNUP_FAILED',
+                        error: error
+                    });
                 });
-                let user = this.firebaseAuth.currentUser;
-                if (!user.emailVerified) {
-                    user.sendEmailVerification();
-                }
-            })
-            .catch(error => {
-                this.dispatch({
-                    type: 'SIGNUP_FAILED',
-                    error: error
-                });
-            });
+        });
     }
 
     login(email, password) {
@@ -73,38 +79,44 @@ class ReduxOnFire {
             });
     }
 
-    google() {
-        this.dispatch({ type: 'GOOGLE_REQUEST' });
-        this.firebaseAuth.signInWithPopup(this.firebaseAuthGoogle)
-            .then((result) => {
-                this.dispatch({
-                    type: 'GOOGLE_SUCCESS',
-                    result: result
+    facebook() {
+        this.dispatch({ type: 'LOGIN_REQUEST' });
+        return new Promise((resolve) => {
+            this.firebaseAuth.signInWithPopup(this.firebaseAuthFacebook)
+                .then((result) => {
+                    this.dispatch({
+                        type: 'LOGIN_SUCCESS',
+                        result: result
+                    });
+                    resolve(result);
+                })
+                .catch((error) => {
+                    this.dispatch({
+                        type: 'LOGIN_FAILED',
+                        error: error
+                    });
                 });
-            })
-            .catch((error) => {
-                this.dispatch({
-                    type: 'GOOGLE_FAILED',
-                    error: error
-                });
-            });
+        });
     }
 
-    facebook() {
-        this.dispatch({ type: 'FACEBOOK_REQUEST' });
-        this.firebaseAuth.signInWithPopup(this.firebaseAuthFacebook)
-            .then((result) => {
-                this.dispatch({
-                    type: 'FACEBOOK_SUCCESS',
-                    result: result
+    google() {
+        this.dispatch({ type: 'LOGIN_REQUEST' });
+        return new Promise((resolve) => {
+            this.firebaseAuth.signInWithPopup(this.firebaseAuthGoogle)
+                .then((result) => {
+                    this.dispatch({
+                        type: 'LOGIN_SUCCESS',
+                        result: result
+                    });
+                    resolve(result);
+                })
+                .catch((error) => {
+                    this.dispatch({
+                        type: 'LOGIN_FAILED',
+                        error: error
+                    });
                 });
-            })
-            .catch((error) => {
-                this.dispatch({
-                    type: 'FACEBOOK_FAILED',
-                    error: error
-                });
-            });
+        });
     }
 
     logout() {
