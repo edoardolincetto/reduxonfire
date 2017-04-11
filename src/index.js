@@ -132,99 +132,122 @@ class ReduxOnFire {
             });
     }
 
-    getRecord(actionName, recordName) {
-        var actionName = actionName.toUpperCase();
-        this.dispatch({type: 'GET_' + actionName + '_REQUEST'});
+    watchRecords(recordsName, returnId) {
+        let actionName = recordsName.toUpperCase();
+        this.dispatch({ type: 'GET_' + actionName + '_REQUEST' });
+        this.firebaseDatabase.ref(recordsName).on('value',
+            (result) => {
+                let array = result.val();
+                if (returnId) {
+                    array = [];
+                    result.forEach((child) => {
+                        let element = child.val();
+                        element.id = child.key;
+                        array.push(element);
+                    });
+                }
 
-        this.firebaseDatabase.ref(recordName).on('value',
-        (snapshot) => {
-            this.dispatch({
-                type: 'GET_' + actionName + '_SUCCESS',
-                [recordName]: snapshot.val()
-            });
-        },
-        (error) => {
-            this.dispatch({type: 'GET_' + actionName + '_FAILED'});
-        });
+                this.dispatch({
+                    type: 'GET_' + actionName + '_SUCCESS',
+                    [recordsName]: array
+                });
+            },
+            (error) => {
+                this.dispatch({
+                    type: 'GET_' + actionName + '_FAILED',
+                    error: error
+                });
+            }
+        );
+    }
+
+    watchRecordsOrdered(recordsName, returnId, criteria, reverse) {
+        let actionName = recordsName.toUpperCase();
+        this.dispatch({ type: 'GET_' + actionName + '_REQUEST' });
+        this.firebaseDatabase.ref(recordsName).orderByChild(criteria).on('value',
+            (result) => {
+                let array = result.val();
+                if (returnId) {
+                    array = [];
+                    result.forEach((child) => {
+                        let element = child.val();
+                        element.id = child.key;
+                        array.push(element);
+                    });
+                }
+
+                this.dispatch({
+                    type: 'GET_' + actionName + '_SUCCESS',
+                    [recordsName]: reverse ? array.reverse() : array
+                });
+            },
+            (error) => {
+                this.dispatch({
+                    type: 'GET_' + actionName + '_FAILED',
+                    error: error
+                });
+            }
+        );
+    }
+
+    getRecordsFiltered(recordsName, filter) {
+        let actionName = recordsName.toUpperCase();
+        this.dispatch({ type: 'GET_' + actionName + '_FILTERED_REQUEST' });
+        this.firebaseDatabase.ref(recordsName).once('value',
+            (result) => {
+                let array = [];
+                result.forEach((child) => {
+                    let element = child.val();
+                    element.id = child.key;
+                    array.push(element);
+                });
+                this.dispatch({
+                    type: 'GET_' + actionName + '_FILTERED_SUCCESS',
+                    [recordsName]: filter(array)
+                });
+            },
+            (error) => {
+                this.dispatch({
+                    type: 'GET_' + actionName + '_FILTERED_FAILED',
+                    error: error
+                });
+            }
+        );
     }
 
     getRecordById(recordName, recordId) {
-        var actionName = recordName.toUpperCase();
-        this.dispatch({type: 'GET_' + actionName + '_REQUEST'});
+        let actionName = recordName.toUpperCase();
+        this.dispatch({ type: 'GET_SINGLE_' + actionName + '_REQUEST' });
 
         const record = this.getState()[recordName].all.filter(value => {
             return value.id == recordId ? true : false
         });
 
-        if(record.length == 1) {
+        if (record.length == 1) {
             this.dispatch({
-                type: 'GET_' + actionName + '_CACHED',
+                type: 'GET_SINGLE_' + actionName + '_CACHED',
                 [recordName]: record[0]
             });
         } else {
-            this.firebaseDatabase.ref(recordName).child(recordId).on('value',
+            this.firebaseDatabase.ref(recordName).child(recordId).once('value',
             (snapshot) => {
                 this.dispatch({
-                    type: 'GET_' + actionName,
+                    type: 'GET_SINGLE_' + actionName + '_SUCCESS',
                     [recordName]: snapshot.val()
                 });
             },
             (error) => {
-                this.dispatch({type: 'GET_' + actionName + '_FAILED'});
+                this.dispatch({ type: 'GET_SINGLE_' + actionName + '_FAILED' });
             });
         }
     }
 
     getRecordByContent(recordName, recordContent) {
-        var actionName = recordName.toUpperCase();
+        let actionName = recordName.toUpperCase();
         return {
             type: 'GET_' + actionName,
             [recordName]: recordContent
         }
-    }
-
-    getRecords(recordsName) {
-        var actionName = recordsName.toUpperCase();
-        this.dispatch({type: 'GET_' + actionName + '_REQUEST'});
-        this.firebaseDatabase.ref(recordsName).on('value',
-        (snapshot) => {
-            var array = [];
-            snapshot.forEach((child) => {
-                var finalObject = child.val();
-                if (finalObject.id) {
-                    finalObject.id = child.key;
-                }
-                array.push(finalObject);
-            });
-            this.dispatch({
-                type: 'GET_' + actionName + '_SUCCESS',
-                [recordsName]: array
-            });
-        },
-        (error) => {
-            this.dispatch({type: 'GET_' + actionName + '_FAILED'});
-        });
-    }
-
-    getRecordsOrdered(recordsName, criteria, reverse) {
-        var actionName = recordsName.toUpperCase();
-        this.dispatch({type: 'GET_' + actionName + '_REQUEST'});
-        this.firebaseDatabase.ref(recordsName).orderByChild(criteria).on('value',
-        (snapshot) => {
-            var array = [];
-            snapshot.forEach((child) => {
-                var finalObject = child.val();
-                finalObject.id = child.key;
-                array.push(finalObject);
-            });
-            this.dispatch({
-                type: 'GET_' + actionName + '_SUCCESS',
-                [recordsName]: reverse ? array.reverse() : array
-            });
-        },
-        (error) => {
-            this.dispatch({type: 'GET_' + actionName + '_FAILED'});
-        });
     }
 
     addRecordKey(recordName) {
