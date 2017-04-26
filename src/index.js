@@ -158,7 +158,7 @@ class ReduxOnFire {
         });
     }
 
-    watchRecords(recordsName, returnId) {
+    watchRecords(recordsName, returnId, reverse) {
         let actionName = recordsName.toUpperCase();
         this.dispatch({ type: 'GET_' + actionName + '_REQUEST' });
         this.firebaseDatabase.ref(recordsName).on('value',
@@ -175,7 +175,7 @@ class ReduxOnFire {
 
                 this.dispatch({
                     type: 'GET_' + actionName + '_SUCCESS',
-                    [recordsName]: array
+                    [recordsName]: reverse ? array.reverse() : array
                 });
             },
             (error) => {
@@ -245,21 +245,23 @@ class ReduxOnFire {
         let actionName = recordName.toUpperCase();
         this.dispatch({ type: 'GET_SINGLE_' + actionName + '_REQUEST' });
 
-        const record = this.getState()[recordName].all.filter(value => {
-            return value.id == recordId ? true : false
-        });
+        if (this.getState()[recordName]) {
+            var record = this.getState()[recordName].all.filter(value => {
+                return value.id == recordId ? true : false
+            });
+        }
 
-        if (record.length == 1) {
+        if (record && record[0]) {
             this.dispatch({
                 type: 'GET_SINGLE_' + actionName + '_CACHED',
                 [recordName]: record[0]
             });
         } else {
             this.firebaseDatabase.ref(recordName).child(recordId).once('value',
-            (snapshot) => {
+            (result) => {
                 this.dispatch({
                     type: 'GET_SINGLE_' + actionName + '_SUCCESS',
-                    [recordName]: snapshot.val()
+                    [recordName]: result.val()
                 });
             },
             (error) => {
@@ -305,64 +307,63 @@ class ReduxOnFire {
 
     }
 
-    updateRecord(recordName, recordId, recordContent, notificationFailed, notificationSuccess) {
-        var actionName = recordName.toUpperCase();
+    updateRecord(recordName, recordId, recordContent) {
+        let actionName = recordName.toUpperCase();
         this.dispatch({type: 'UPDATE_' + actionName + '_REQUEST'});
+        return new Promise((resolve, reject) => {
+            if (recordId == null) {
+                var reference = this.firebaseDatabase.ref().child(recordName);
+            } else {
+                var reference = this.firebaseDatabase.ref().child(recordName + '/' + recordId);
+            }
 
-        if (recordId == null) {
-            var reference = this.firebaseDatabase.ref().child(recordName);
-        } else {
-            var reference = this.firebaseDatabase.ref().child(recordName + '/' + recordId);
-        }
-
-        return reference.update(
-            recordContent,
-            (error) => {
-                if (error) {
-                    if (notificationFailed) {
+            return reference.update(recordContent,
+                (error) => {
+                    if (error) {
                         this.dispatch({
                             type: 'UPDATE_' + actionName + '_FAILED',
-                            notification: notificationFailed
+                            error: error
                         });
-                    }
-                } else {
-                    if (notificationSuccess) {
+
+                        reject(error);
+                    } else {
                         this.dispatch({
                             type: 'UPDATE_' + actionName + '_SUCCESS',
-                            [recordName]: recordContent,
-                            notification: notificationSuccess
+                            [recordName]: recordContent
                         });
+
+                        resolve(recordContent);
                     }
-                };
-            }
-        );
+                }
+            );
+        });
     }
 
-    setRecord(recordName, recordContent, notificationFailed, notificationSuccess) {
-        var actionName = recordName.toUpperCase();
+    setRecord(recordName, recordContent) {
+        let actionName = recordName.toUpperCase();
         this.dispatch({type: 'SET_' + actionName + '_REQUEST'});
-        var reference = this.firebaseDatabase.ref().child(recordName);
-        return reference.set(
-            recordContent,
-            (error) => {
-                if (error) {
-                    if (notificationFailed) {
+        return new Promise((resolve, reject) => {
+            let reference = this.firebaseDatabase.ref().child(recordName);
+            return reference.set(
+                recordContent,
+                (error) => {
+                    if (error) {
                         this.dispatch({
-                            type: 'SET_' + actionName + '_FAILED',
-                            notification: notificationFailed
+                            type: 'SET_' + actionName + '_FAILED'
                         });
-                    }
-                } else {
-                    if (notificationSuccess) {
+
+                        reject(error);
+                    } else {
                         this.dispatch({
                             type: 'SET_' + actionName + '_SUCCESS',
-                            [recordName]: recordContent,
-                            notification: notificationSuccess
+                            [recordName]: recordContent
                         });
+
+                        resolve(recordContent)
                     }
-                };
-            }
-        );
+                }
+            );
+        });
     }
 
     deleteRecord(recordName, recordId) {
