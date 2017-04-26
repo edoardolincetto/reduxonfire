@@ -305,6 +305,31 @@ class ReduxOnFire {
         });
     }
 
+    uploadFile(recordName, filesArray) {
+        let actionName = recordName.toUpperCase();
+        this.dispatch({ type: 'UPLOAD_' + actionName + '_REQUEST' });
+        let fileUploadCycle = filesArray.map((file) => {
+            return new Promise((resolve, reject) => {
+                this.firebaseStorage.ref().child(recordName + '/' + file.name).put(file)
+                    .then((result) => {
+                        this.dispatch({
+                            type: 'UPLOAD_' + actionName + '_SUCCESS',
+                        });
+
+                        resolve(result.downloadURL);
+                    })
+                    .catch((error) => {
+                        this.dispatch({
+                            type: 'UPLOAD_' + actionName + '_FAILED',
+                            error: error
+                        });
+
+                        reject(error);
+                    });
+            });
+        });
+
+        return Promise.all(fileUploadCycle)
     }
 
     updateRecord(recordName, recordId, recordContent) {
