@@ -374,42 +374,6 @@ class ReduxOnFire {
         );
     }
 
-    cloneRecord(recordName, recordId, notificationFailed, notificationSuccess) {
-        var actionName = recordName.toUpperCase();
-        this.dispatch({type: 'CLONE_' + actionName + '_REQUEST'})
-        const record = this.getState()[recordName].all.filter(value => {
-            return value.id == recordId ? true : false
-        });
-
-        if(record.length == 1) {
-            var reference = this.firebaseDatabase.ref(recordName).push().key;
-            return this.firebaseDatabase.ref(recordName).child(reference).update(
-                record[0],
-                (error) => {
-                    if (error) {
-                        return dispatch({type: 'CLONE_' + actionName + '_FAILED', notification: notificationFailed});
-                    } else {
-                        return dispatch({type: 'CLONE_' + actionName + '_SUCCESS', notification: notificationSuccess});
-                    };
-                }
-            );
-        } else {
-            this.firebaseDatabase.ref(recordName).child(recordId).once('value').then((snapshot) => {
-                var reference = this.firebaseDatabase.ref(recordName).push().key;
-                return this.firebaseDatabase.ref(recordName).child(reference).update(
-                    snapshot.val(),
-                    (error) => {
-                        if (error) {
-                            return dispatch({type: 'CLONE_' + actionName + '_FAILED', notification: notificationFailed});
-                        } else {
-                            return dispatch({type: 'CLONE_' + actionName + '_SUCCESS', notification: notificationSuccess});
-                        };
-                    }
-                );
-            });
-        }
-    }
-
     deleteRecord(recordName, recordId) {
         let actionName = recordName.toUpperCase();
         this.firebaseDatabase.ref().child(recordName + '/' + recordId).remove();
