@@ -420,11 +420,35 @@ class ReduxOnFire {
         }
     }
 
-    showNotification(notification) {
-        return {
-            type: 'SIMPLE_NOTIFICATION',
-            notification: notification
+    addNotification(notification) {
+        const newNotification = Object.assign({}, notification);
+        newNotification.id = new Date().getTime();
+        this.dispatch({
+            type: 'ADD_NOTIFICATION',
+            newNotification
+        });
+
+        if (newNotification.removeAfter) {
+            setTimeout(() => {
+                this.dispatch({
+                    type: 'REMOVE_NOTIFICATION',
+                    id: newNotification.id,
+                });
+            }, newNotification.removeAfter);
         }
+    }
+
+    removeNotification(id) {
+        this.dispatch({
+            type: 'REMOVE_NOTIFICATION',
+            id: id
+        });
+    }
+
+    clearNotifications() {
+        this.dispatch({
+            type: 'CLEAR_NOTIFICATIONS'
+        });
     }
 
 }
