@@ -27,7 +27,7 @@ class ReduxOnFire {
 
     signup(email, password) {
         this.dispatch({ type: 'SIGNUP_REQUEST' });
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .then(result => {
                     this.dispatch({
@@ -45,49 +45,64 @@ class ReduxOnFire {
                         type: 'SIGNUP_FAILED',
                         error: error
                     });
+
+                    reject(error);
                 });
         });
     }
 
     login(email, password) {
         this.dispatch({ type: 'LOGIN_REQUEST' });
-        this.firebaseAuth.signInWithEmailAndPassword(email, password)
-            .then(result => {
-                this.dispatch({
-                    type: 'LOGIN_SUCCESS',
-                    result: result
+        return new Promise((resolve, reject) => {
+            this.firebaseAuth.signInWithEmailAndPassword(email, password)
+                .then(result => {
+                    this.dispatch({
+                        type: 'LOGIN_SUCCESS',
+                        result: result
+                    });
+
+                    resolve(result);
+                })
+                .catch(error => {
+                    this.dispatch({
+                        type: 'LOGIN_FAILED',
+                        error: error
+                    });
+
+                    reject(error);
                 });
-            })
-            .catch(error => {
-                this.dispatch({
-                    type: 'LOGIN_FAILED',
-                    error: error
-                });
-            });
+        });
     }
 
     passwordReset(email) {
-        this.firebaseAuth.sendPasswordResetEmail(email)
-            .then(() => {
-                this.dispatch({ type: 'PASSWORD_RESET_SUCCESS' });
-            })
-            .catch((error) => {
-                this.dispatch({
-                    type: 'PASSWORD_RESET_FAILED',
-                    error: error
+        return new Promise((resolve, reject) => {
+            this.firebaseAuth.sendPasswordResetEmail(email)
+                .then(() => {
+                    this.dispatch({ type: 'PASSWORD_RESET_SUCCESS' });
+
+                    resolve();
+                })
+                .catch((error) => {
+                    this.dispatch({
+                        type: 'PASSWORD_RESET_FAILED',
+                        error: error
+                    });
+
+                    reject(error);
                 });
-            });
+        });
     }
 
     facebook() {
         this.dispatch({ type: 'LOGIN_REQUEST' });
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.firebaseAuth.signInWithPopup(this.firebaseAuthFacebook)
                 .then((result) => {
                     this.dispatch({
                         type: 'LOGIN_SUCCESS',
                         result: result
                     });
+
                     resolve(result);
                 })
                 .catch((error) => {
@@ -95,19 +110,22 @@ class ReduxOnFire {
                         type: 'LOGIN_FAILED',
                         error: error
                     });
+
+                    reject(error);
                 });
         });
     }
 
     google() {
         this.dispatch({ type: 'LOGIN_REQUEST' });
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.firebaseAuth.signInWithPopup(this.firebaseAuthGoogle)
                 .then((result) => {
                     this.dispatch({
                         type: 'LOGIN_SUCCESS',
                         result: result
                     });
+
                     resolve(result);
                 })
                 .catch((error) => {
@@ -115,21 +133,29 @@ class ReduxOnFire {
                         type: 'LOGIN_FAILED',
                         error: error
                     });
+
+                    reject(error);
                 });
         });
     }
 
     logout() {
-        this.firebaseAuth.signOut()
-            .then(() => {
-                this.dispatch({ type: 'LOGOUT_SUCCESS' });
-            })
-            .catch((error) => {
-                this.dispatch({
-                    type: 'LOGOUT_FAILED',
-                    error: error
+        return new Promise((resolve, reject) => {
+            this.firebaseAuth.signOut()
+                .then(() => {
+                    this.dispatch({ type: 'LOGOUT_SUCCESS' });
+
+                    resolve();
+                })
+                .catch((error) => {
+                    this.dispatch({
+                        type: 'LOGOUT_FAILED',
+                        error: error
+                    });
+
+                    reject(error);
                 });
-            });
+        });
     }
 
     watchRecords(recordsName, returnId) {
