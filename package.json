@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack",
+    "dist": "webpack --progress -p",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,7 +30,10 @@
     "babel-core": "^6.24.0",
     "babel-loader": "^6.4.1",
     "babel-preset-env": "^1.3.2",
+    "babel-preset-react": "^6.24.1",
     "firebase": "^3.7.5",
+    "react": "^15.5.4",
+    "react-redux": "^5.0.4",
     "webpack": "^2.3.3"
   }
 }
