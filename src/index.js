@@ -410,13 +410,12 @@ class ReduxOnFire {
         }
     }
 
-    deleteRecord(recordName, recordId, notificationSuccess) {
-        var actionName = recordName.toUpperCase();
+    deleteRecord(recordName, recordId) {
+        let actionName = recordName.toUpperCase();
         this.firebaseDatabase.ref().child(recordName + '/' + recordId).remove();
         return {
             type: 'DELETE_' + actionName,
-            id: recordId,
-            notification: notificationSuccess
+            id: recordId
         }
     }
 
