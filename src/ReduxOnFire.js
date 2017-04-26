@@ -405,7 +405,7 @@ class ReduxOnFire {
         newNotification.id = new Date().getTime();
         this.dispatch({
             type: 'ADD_NOTIFICATION',
-            newNotification
+            notification: newNotification
         });
 
         if (newNotification.removeAfter) {
