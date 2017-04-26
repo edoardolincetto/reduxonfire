@@ -276,42 +276,33 @@ class ReduxOnFire {
         }
     }
 
-    addRecordKey(recordName) {
-        var actionName = recordName.toUpperCase();
-        var reference = this.firebaseDatabase.ref().child(recordName).push().key;
-        var initialDB = {
-            number: '0/2016'
-        }
+    addRecord(recordName, recordContent) {
+        let actionName = recordName.toUpperCase();
+        this.dispatch({ type: 'ADD_' + actionName + '_REQUEST' });
+        let reference = this.firebaseDatabase.ref().child(recordName).push().key;
+        return new Promise((resolve, reject) => {
+            this.firebaseDatabase.ref().child(recordName + '/' + reference).update(
+                recordContent,
+                (error) => {
+                    if (error) {
+                        this.dispatch({
+                            type: 'ADD_' + actionName + '_FAILED'
+                        });
 
-        return this.firebaseDatabase.ref().child(recordName + '/' + reference).update(
-            initialDB,
-            (error) => {
-                if (error) {
-                    console.log(error);
-                } else {
-                    return dispatch({
-                        type: 'ADD_' + actionName,
-                        reference: reference
-                    });
+                        reject(error);
+                    } else {
+                        this.dispatch({
+                            type: 'ADD_' + actionName + '_SUCCESS',
+                            reference: reference
+                        });
+
+                        resolve(reference);
+                    }
                 }
-            }
-        );
+            );
+        });
     }
 
-    addRecordWithContent(recordName, recordContent, notificationFailed, notificationSuccess) {
-        var actionName = recordName.toUpperCase();
-        this.dispatch({type: 'ADD_' + actionName + '_REQUEST'});
-        var reference = this.firebaseDatabase.ref().child(recordName).push().key;
-        return this.firebaseDatabase.ref().child(recordName + '/' + reference).update(
-            recordContent,
-            (error) => {
-                if (error) {
-                    return dispatch({type: 'ADD_' + actionName + '_FAILED', notification: notificationFailed});
-                } else {
-                    return dispatch({type: 'ADD_' + actionName + '_SUCCESS', notification: notificationSuccess});
-                };
-            }
-        );
     }
 
     updateRecord(recordName, recordId, recordContent, notificationFailed, notificationSuccess) {
