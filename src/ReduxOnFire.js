@@ -332,6 +332,24 @@ class ReduxOnFire {
         return Promise.all(fileUploadCycle)
     }
 
+    deleteFile(recordName, fileRef) {
+        let actionName = recordName.toUpperCase();
+        this.dispatch({ type: 'DELETE_' + actionName + '_REQUEST' });
+
+        this.firebaseStorage.ref().child(recordName + '/' + fileRef).delete()
+            .then((result) => {
+                this.dispatch({
+                    type: 'DELETE_' + actionName + '_SUCCESS',
+                });
+            })
+            .catch((error) => {
+                this.dispatch({
+                    type: 'DELETE_' + actionName + '_FAILED',
+                    error: error
+                });
+            });
+    }
+
     updateRecord(recordName, recordId, recordContent) {
         let actionName = recordName.toUpperCase();
         this.dispatch({type: 'UPDATE_' + actionName + '_REQUEST'});
