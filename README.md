@@ -18,14 +18,14 @@ ReduxOnFire brings out the best of it's features when used alongside the - [Abim
 
 ## API
 
-ReduxOnFire is a project that contains a set of comprehensive API's to be used in order to use Firebase alongside Redux.
+ReduxOnFire is a project that contains a set of comprehensive API's that can be used in order to use Firebase alongside Redux.
 
 ## Notifications
 
 ReduxOnFire also provides a set of Notification management methods that can be used to create a custom notification manager which reacts to changes in the Redux state.
 
 ```
-Custom Notification manager integration docs are Work In Progress
+**Custom Notification manager integration docs are Work In Progress**
 ```
 
 ## API reference
@@ -80,7 +80,7 @@ Name         | Type     | Description                                        | R
 
 ### `login`
 
-Logs an already existing user into the platform using an email and a password.
+Logs an existing user into the platform using an email and a password.
 
 **Params**
 
@@ -126,19 +126,19 @@ Watches the records of the selected document for changes and returns the content
 Name            | Type      | Description                                                                           | Required
 :-------------- | :-------- | :------------------------------------------------------------------------------------ | :-------
 **recordsName** | `string`  | The name of the document that you want to watch                                       | Yes
-**returnId**    | `boolean` | Set to `true` if you want the returned objects to have their id's as a key value pair | No
+**returnId**    | `boolean` | Set to `true` if you want the returned objects to have their id's as a key-value pair | No
 **reverse**     | `boolean` | Set to true if you want to reverse the order of the returned objects                  | No
 
 ### `watchRecordsOrdered`
 
-Same as watchRecords but instead of returning them in a pseudorandom order it orders them based on the specified parameter.
+Same as watchRecords but instead of returning them in a pseudorandom order, it orders them based on the specified parameter.
 
 **Params**
 
 Name            | Type      | Description                                                                           | Required
 :-------------- | :-------- | :------------------------------------------------------------------------------------ | :-------
 **recordsName** | `string`  | The name of the document that you want to watch                                       | Yes
-**returnId**    | `boolean` | Set to `true` if you want the returned objects to have their id's as a key value pair | No
+**returnId**    | `boolean` | Set to `true` if you want the returned objects to have their id's as a key-value pair | No
 **criteria**    | `string`  | Set to the name of the value to use as the criteria to order the returned objects     | Yes
 **reverse**     | `boolean` | Set to true if you want to reverse the order of the returned objects                  | No
 
@@ -177,7 +177,7 @@ Name              | Type     | Description                                      
 
 ### `addRecord`
 
-Adds an object to the specified document with a pseudorandom ID and the provided content
+Adds an object to the specified document with a pseudorandom ID and the provided content.
 
 **Params**
 
@@ -188,7 +188,7 @@ Name              | Type     | Description                                      
 
 ### `updateRecord`
 
-Updates the specified object by changing it's content from the old content to the one passed to the method
+Updates the specified object by changing it's content from the old content to the one passed to the method.
 
 **Params**
 
@@ -235,7 +235,7 @@ Name           | Type                            | Description                  
 
 ### `deleteFile`
 
-Deletes a file by specifying it's full reference
+Deletes a file by specifying it's full reference.
 
 **Params**
 
